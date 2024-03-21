@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSV Segmentation — by Ahmed Salim</title>
+    <style>
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('/static/wb.jpg');
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: transparent;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            text-align: center;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            width: 570px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .header p {
+            font-style: normal;
+            text-transform: uppercase;
+            font-family: "CaviarDreams", sans;
+            display: block;
+            text-shadow: #000 1px 1px 0px;
+            color: #eee;
+            letter-spacing: .1em;
+            margin: 1em 0 .3em;
+            padding: 0;
+            font-size: 1.25em;
+            line-height: 1.5em;
+        }
+        
+        .container {
+            display: flex;
+            justify-content: center;
+            margin: 0 auto;
+            margin-top: 0;
+            text-align: center;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            box-sizing: border-box;
+            width: 1200px;
+        }
+
+        .parameters {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 0 auto;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-right: 20px;
+
+            text-align: left;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            width: 270px;
+            box-sizing: border-box;
+        }
+
+        .parameters h3 {
+            text-align: center;
+            color: #ffffff;
+            margin: 0;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #ADD8E6;
+            border-radius: 50%;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            background: #ADD8E6;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+
+        .slider:hover::-webkit-slider-thumb {
+            background: #ADD8E6;
+        }
+
+        .slider:focus::-webkit-slider-thumb {
+            background: #014a63;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        #clearButton,
+        .upload-btn {
+            display: block;
+            width: 60%;
+            font-size: 18px;
+            margin: 0 auto -10px;
+            padding: 10px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            background-color: transparent; 
+        }
+
+        .upload-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        #downloadSegmentedImage:hover,
+        #seeExampleButton:hover,
+        #clearButton:hover {
+            background-color: #0a6880 !important;
+        }
+
+        #downloadSegmentedImage:active,
+        #seeExampleButton:active,
+        #clearButton:active,
+        .upload-btn:active {
+            background-color: #012d37 !important;
+        }
+
+        .drag-drop-area {
+            background-color: rgba(255, 255, 255, 0.1);
+            flex: 1;
+            height: auto;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-right: 20px;
+            text-align: center;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .drag-drop-area p {
+            margin: 0;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .image-container {
+            display: none;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .image-container div {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        #fileInput {
+            visibility: hidden;
+        }
+        
+        #downloadSegmentedImage {
+            margin: 20px auto;
+            width: 30%;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: none;
+        }
+
+        footer {
+            color: #555;
+            text-shadow: rgba(#000, .5) 0 1px 1px;
+            font-size: 13px;
+        }
+
+        footer p {
+            padding-bottom: .5em;
+        }
+
+        footer a {
+            display: inline-block;
+            color: #666;
+            line-height: 1.1em;
+            border-color: #555;
+            position: relative;
+            margin-left: .2em;
+        }
+
+        footer a + a { 
+            margin-left: 1em;
+        }
+
+        footer a + a:before {
+            content: " ";
+            display: block;
+            position: absolute;
+            left: -.7em;
+            top: 0;
+            border-left: 1px solid rgba(#000, .7);
+            width: 1px;
+            height: 1.3em;
+            box-shadow: rgba(#fff, .08) 1px 0 inset;
+        }
+
+        .url {
+            display: inline-block;
+            padding: 0 8px 2px;
+            text-shadow: inherit;
+            text-align: center;
+            line-height: 2em;
+            cursor: text;
+            margin: 0;
+            border: 0;
+            width: 168px;
+            color: #666;
+            border-radius: 0px;
+            box-shadow: none;
+            background: none;
+        }
+
+        .url:focus,
+        .url:hover {
+            background: rgba(#000, .05);
+            box-shadow: rgba(#000, .4) 0 1px 10px 0px inset;
+            color: #999;
+        }
+
+        section {  
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            box-shadow: rgba(255,255,255,0.1) 0 1px 0,rgba(0,0,0,0.8) 0 1px 7px 0px inset;
+            color: #c6c6c6;
+            font-size: .9em;
+            line-height: 1.45em;
+            text-align: left;
+            overflow: hidden;
+            border-radius: 4px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            width: 570px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        section p {
+            font-family: "Lucida sans", Helvetica, Arial, sans;
+            color: #c6c6c6;
+            font-size: .9em;
+            text-align: justify;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0 0 1.5em;
+            line-height: 1.5em;
+        }
+
+        section strong {
+            color: #ccc;
+        }
+
+        section a.why {
+            color: #444;
+            text-shadow: #000 0 0 2px;
+            text-transform: lowercase;
+            display: block;
+            width: 3.5em;
+            margin: 0 auto;
+            text-align: center;
+            display: none;
+        }
+
+        section h2 {
+            text-shadow: rgba(#000, .7) 0 2px 2px;
+            line-height: 1.45em;
+            box-sizing: border-box;
+            font-family: 'AdelleBasic', sans;
+            font-weight: normal;
+            text-align: center;
+            font-size: 2em;
+            margin: .2em 0 0;
+            border-bottom: 1px solid rgba(0,0,0,0.3);
+            padding-bottom: .6em;
+            text-shadow: rgba(0,0,0,0.7) 0 2px 2px;
+            color: hsla(163, 40%, 70%, 1);
+        }
+
+        section h3 {
+            line-height: 1.45em;
+            text-align: left;
+            box-sizing: border-box;
+            font-family: 'AdelleBasic', sans;
+            font-weight: normal;
+            font-size: 1.6em;
+            margin: .8em 0 1em;
+            text-shadow: rgba(0,0,0,0.7) 0 2px 2px;
+            color: hsla(163, 40%, 70%, 1);
+        }
+        
+        .hide { display: none; }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="text-shadow: rgb(84, 176, 150) 0px 1px 0px, rgb(84, 176, 150) 0px 2px 0px, rgb(84, 176, 150) 0px 3px 0px, rgb(84, 176, 150) 0px 4px 0px, rgba(0, 0, 0, 0.2) 0px 5px 1px, rgba(0, 0, 0, 0.3) 0px 0px 10px, rgba(0, 0, 0, 0.4) 0px 3px 5px, rgba(0, 0, 0, 0.5) 0px 6px 5px, rgba(0, 0, 0, 0.6) 0px 10px 10px;">COLOR-BASED IMAGE SEGMENTATION</h1>
+        <p>—Explore with HSV boundaries—</p>
+    </div>
+    <div class="container">
+        <div class="parameters">
+            <h3 style="text-shadow: rgb(84, 176, 150) 0px 1px 0px, rgb(84, 176, 150) 0px 2px 0px, rgba(0, 0, 0, 0.2) 0px 3px 1px, rgba(0, 0, 0, 0.3) 0px 0px 5px, rgba(0, 0, 0, 0.4) 0px 2px 3px, rgba(0, 0, 0, 0.5) 0px 4px 3px, rgba(0, 0, 0, 0.6) 0px 7px 7px;">HSV Boundaries</h3>
+            <label for="low_hue">
+                Low Hue: <span id="low_hue_value">42</span>
+                <input type="range" min="0" max="180" value="42" class="slider" id="low_hue">
+            </label>
+            <label for="high_hue">
+                High Hue: <span id="high_hue_value">79</span>
+                <input type="range" min="0" max="180" value="79" class="slider" id="high_hue">
+            </label>
+            <label for="low_sat">
+                Low Saturation: <span id="low_sat_value">48</span>            
+                <input type="range" min="0" max="255" value="48" class="slider" id="low_sat">
+            </label>
+            <label for="high_sat">
+                High Saturation: <span id="high_sat_value">255</span>
+                <input type="range" min="0" max="255" value="255" class="slider" id="high_sat">
+            </label>
+            <label for="low_val">
+                Low Value: <span id="low_val_value">0</span>
+                <input type="range" min="0" max="255" value="0" class="slider" id="low_val">
+            </label>
+            <label for="high_val">
+                High Value: <span id="high_val_value">255</span>
+                <input type="range" min="0" max="255" value="255" class="slider" id="high_val">
+            </label>
+            <div style="text-align: center;">
+                <label id="seeExampleButton" class="upload-btn" style="cursor: pointer; display: inline-block; padding: 10px 20px; margin-top: 10px; background-color: #014a63; color: white; border: none; border-radius: 5px; text-align: center; text-decoration: none; font-size: 16px; text-shadow: 0px 1px 0px #5A8F5C; transition: background-color 0.3s;">
+                    See Example
+                </label>
+            </div>
+                   
+        </div>
+        <div class="drag-drop-area" id="dragDropArea">
+            <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                <label for="fileInput" class="upload-btn" style="width: 40%; text-shadow: rgb(84, 176, 150) 0px 1px 0px, rgb(84, 176, 150) 0px 2px 0px, rgba(0, 0, 0, 0.2) 0px 3px 1px, rgba(0, 0, 0, 0.3) 0px 0px 5px, rgba(0, 0, 0, 0.4) 0px 2px 3px, rgba(0, 0, 0, 0.5) 0px 4px 3px, rgba(0, 0, 0, 0.6) 0px 7px 7px;">Drag & Drop or Upload an Image<input type="file" name="file" id="fileInput"></label>
+                <div class="image-container">
+                    <div>
+                        <img id="uploadedImage" src="" alt="Uploaed Image">
+                    </div>
+                    <div>
+                        <img id="segmentedImage" src="{{ segmented_image }}" alt="Segmented Image">
+                    </div>
+                    <div>
+                        <img id="stackedImages" src="{{ stacked_image }}" alt="Stacked Image">
+                    </div>
+                </div>
+                <label id="downloadSegmentedImage" class="download-btn" style="cursor: pointer; padding: 10px 20px; margin-top: 10px; background-color: #014a63; color: white; border: none; border-radius: 5px; text-align: center; text-decoration: none; font-size: 16px; text-shadow: 0px 1px 0px #5A8F5C; transition: background-color 0.3s;">
+                    Download Segmented Image
+                </label>
+            </form>
+            <label id="clearButton" class="download-btn" style="display: none; margin: 10px auto; width: 30%; cursor: pointer; padding: 10px 20px; margin-top: 10px; background-color: #014a63; color: white; border: none; border-radius: 5px; text-align: center; text-decoration: none; font-size: 16px; text-shadow: 0px 1px 0px #5A8F5C; transition: background-color 0.3s;">
+                Clear
+            </label>
+        </div>
+
+    </div>
+    <footer>
+        <div style="max-width: 80%; margin: 0 auto; text-align: center; padding: 10px;">
+            <p>
+                HSV Color Explorer adores modern browsers.
+                &copy; 2024 <a target="_blank" href="https://amedsalim.github.io">Ahmed Salim</a>
+                <a class='show-more' href="#" id="showMoreLink">What's HSV?</a> 
+                <a href="https://github.com/amedsalim/Color-Based-Image-Segmentation" target="_blank">Source</a>
+            </p>
+            <div>
+                <a href="https://github.com/amedsalim" target="_blank">
+                    <img src="/static/github.svg" alt="GitHub" style="width: 20px; height: 20px; margin-right: 10px;">
+                </a>
+                <a href="https://www.linkedin.com/in/ahmed-salim-b73aa9200/" target="_blank">
+                    <img src="/static/linkedin.svg" alt="LinkedIn" style="width: 20px; height: 20px;">
+                </a>
+            </div>
+        </div>
+    </footer>
+    <section id="more" class="hide">
+        <h2>Understanding HSV</h2>
+        <p>The HSV color space, also known as HSB (Hue, Saturation, Brightness/Value). It breaks down colors into three main attributes: Hue (the type of color), Saturation (the intensity or purity), and Value (the brightness or lightness). In <a href="https://docs.opencv.org/3.2.0/df/d9d/tutorial_py_colorspaces.html" target="_blank" style="color: #ADD8E6;">OpenCV</a>, Hue ranges from 0 to 179 degrees, Saturation from 0 to 255 (0 for gray, 255 for pure color), and Value from 0 (black) to 255 (white).</p>    
+        <h2>Advantages of HSV</h2>
+        <p>One of the key advantages of HSV is its ability to separate color information (chroma) from intensity or lighting (luma). This separation enables constructing histograms or thresholding rules using only saturation and hue, which can be more robust against lighting changes in the value channel. Even by considering only the hue, a meaningful representation of the base color can be obtained, leading to better color thresholding compared to RGB.</p>
+        <p>Geometrically, the HSV color space can be envisioned as a cone or cylinder, with hue being the degree, saturation being the radius, and value being the height.</p>
+        <h3>How to Choose Upper & Lower HSV Boundaries</h3>
+        <p>To determine the correct upper and lower HSV boundaries, one useful resource is creating an HSV colormap. You can refer to <a href="https://stackoverflow.com/a/48367205" target="_blank" style="color: #ADD8E6;">this</a> resource for guidance on picking your desired low/high HSV values.</p>
+    </section>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var fileInput = document.getElementById("fileInput");
+            var uploadForm = document.getElementById("uploadForm");
+            var formData = new FormData(uploadForm);
+            var dragDropArea = document.getElementById("dragDropArea");
+            var imageContainer = document.querySelector(".image-container");
+            var fileUploaded = false;
+
+            document.getElementById("seeExampleButton").addEventListener("click", function() {
+                var exImg = "/static/audi.jpeg";
+
+                fetch(exImg)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        var file = new File([blob], "audi.jpeg", { type: "image/jpeg" });
+                        formData.set("file", file);
+                        handleFileUpload(file);
+                    })
+            });
+
+            function handleFileUpload(file) {
+                if (!file) {
+                    return;
+                }
+                var reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function () {
+                    var img_base64 = reader.result;
+                    document.getElementById("uploadedImage").src = img_base64;
+                    updateHSV(img_base64, formData);
+                    imageContainer.style.display = "flex";
+                    document.getElementById("downloadSegmentedImage").style.display = "block";
+                    document.getElementById("clearButton").style.display = "block";
+                    fileUploaded = true;
+                };
+            }
+
+            dragDropArea.addEventListener("dragover", function(event) {
+                event.preventDefault();
+                dragDropArea.classList.add("drag-over");
+            });
+
+            dragDropArea.addEventListener("drop", function(event) {
+                event.preventDefault();
+                dragDropArea.classList.remove("drag-over");
+                var file = event.dataTransfer.files[0];
+                formData.set('file', file);
+                handleFileUpload(file);
+            });
+
+            fileInput.addEventListener("change", function(event) {
+                var file = event.target.files[0];
+                formData.set('file', file);
+                handleFileUpload(file);
+            });
+
+            var sliders = document.querySelectorAll(".slider");
+            sliders.forEach(function(slider) {
+                var valueSpan = document.getElementById(slider.id + "_value");
+                var value = parseInt(valueSpan.textContent);
+                var max = parseInt(slider.getAttribute('max'), 10);
+                var percentage = (value / max) * 100;
+                slider.style.background = `linear-gradient(to right, #014a63 ${percentage}%, #ccc ${percentage}%)`;
+                slider.addEventListener("input", function(event) {
+                    var valueSpan = document.getElementById(event.target.id + "_value");
+                    valueSpan.textContent = event.target.value;
+                    if (fileUploaded) { 
+                        var file = formData.get('file');
+                        formData.set(event.target.id, event.target.value);
+                        handleFileUpload(file);
+                    }
+                    var value = event.target.value;
+                    var max = parseInt(event.target.getAttribute('max'), 10);
+                    var percentage = (value / max) * 100;
+                    this.style.background = `linear-gradient(to right, #014a63  ${percentage}%, #ccc ${percentage}%)`;
+                });
+            });
+
+            function updateHSV(img_base64, formData=null) {
+                var json_data = {
+                    'file': img_base64.split(',')[1],
+                    'low_hue': formData && formData.get('low_hue') !== null ? formData.get('low_hue') : document.getElementById('low_hue').value,
+                    'high_hue': formData && formData.get('high_hue') !== null ? formData.get('high_hue') : document.getElementById('high_hue').value,
+                    'low_sat': formData && formData.get('low_sat') !== null ? formData.get('low_sat') : document.getElementById('low_sat').value,
+                    'high_sat': formData && formData.get('high_sat') !== null ? formData.get('high_sat') : document.getElementById('high_sat').value,
+                    'low_val': formData && formData.get('low_val') !== null ? formData.get('low_val') : document.getElementById('low_val').value,
+                    'high_val': formData && formData.get('high_val') !== null ? formData.get('high_val') : document.getElementById('high_val').value
+                };
+
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/update_hsv", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.segmented_image) {
+                            document.getElementById("segmentedImage").src = response.segmented_image;
+                            document.getElementById("stackedImages").src = response.stacked_image;
+                        } else {
+                            console.error("Error: Segmented image not found in response.");
+                        }
+                    }
+                };
+                xhr.send(JSON.stringify(json_data));
+            }
+            
+            document.getElementById("downloadSegmentedImage").addEventListener("click", function() {
+                var segmentedImageSrc = document.getElementById("segmentedImage").src;
+                var a = document.createElement("a");
+                a.href = segmentedImageSrc;
+                a.download = "segmented_image.png";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+
+            document.getElementById("clearButton").addEventListener("click", function() {
+                document.querySelector(".image-container").style.display = "none";
+                document.getElementById("downloadSegmentedImage").style.display = "none";
+                document.getElementById("clearButton").style.display = "none";
+                fileUploaded = false;
+                fileInput.value = '';
+            });
+        });
+        document.getElementById("showMoreLink").addEventListener("click", function(event) {
+            event.preventDefault(); 
+            document.getElementById("more").classList.toggle("hide");
+        });
+    </script>
+</body>
+</html>
