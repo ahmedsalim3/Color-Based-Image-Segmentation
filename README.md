@@ -1,6 +1,6 @@
 # Color Based Image Segmentation
 ![img1](https://github.com/amedsalim/Color-Based-Image-Segmentation/assets/126220185/3bcf5e0e-ef13-4050-9e1f-5b5764e1f4e4)
-<h6 align="center">View (<a href="https://hsv-segmentation-8665d7d73b94.herokuapp.com/">live demonstration</a>)</h6>
+<h6 align="center">View (<a href="https://hsv-segmentation.onrender.com">live demonstration</a>)</h6>
 
 ![img2](https://github.com/amedsalim/Color-Based-Image-Segmentation/assets/126220185/ab56161e-b130-4e64-9b35-846abb371181)
 
