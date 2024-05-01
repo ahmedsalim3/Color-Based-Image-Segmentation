@@ -1,4 +1,10 @@
-# Color Based Image Segmentation
+<p align= "center">
+<img src="https://img.shields.io/github/stars/amedsalim/Color-Based-Image-Segmentation?style=flat&color=green"></a>
+<img src="https://hits.sh/github.com/amedsalim/Color-Based-Image-Segmentation.svg?label=views&color=green"></a>
+<img src="https://img.shields.io/badge/PYTHON-3.10-green"></a>
+<img src="https://img.shields.io/badge/MIT-license--3.0-green"></a> 
+</p>
+
 ![img1](https://github.com/amedsalim/Color-Based-Image-Segmentation/assets/126220185/3bcf5e0e-ef13-4050-9e1f-5b5764e1f4e4)
 <h6 align="center">View (<a href="https://hsv-segmentation.onrender.com">live demonstration</a>)</h6>
 
